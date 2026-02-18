@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f1117;
+  --foreground: #ededed;
+  --surface-raised: #1a1d27;
 }
 
 @theme inline {
@@ -12,15 +13,82 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-track {
+  height: 6px;
+  border-radius: 3px;
+  background: #374151;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  margin-top: -5px;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #ffffff;
+  transform: scale(1.1);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: #374151;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: none;
+  cursor: pointer;
+}
+
+/* Number input: hide spinner arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
 }

@@ -1,63 +1,126 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Header } from '@/components/Header';
+import { allPatterns, categories } from '@/lib/patterns';
+import { usePatternStore } from '@/lib/store/usePatternStore';
+import { useTransportStore } from '@/lib/store/useTransportStore';
+import { PatternCategory } from '@/lib/patterns/types';
+
+const categoryColors: Record<string, string> = {
+  rock: 'bg-red-500/20 text-red-400',
+  funk: 'bg-purple-500/20 text-purple-400',
+  latin: 'bg-yellow-500/20 text-yellow-400',
+  world: 'bg-green-500/20 text-green-400',
+  rudiment: 'bg-cyan-500/20 text-cyan-400',
+};
 
 export default function Home() {
+  const [activeCategory, setActiveCategory] = useState<PatternCategory | 'all'>('all');
+  const loadPattern = usePatternStore((s) => s.loadPattern);
+  const setBpm = useTransportStore((s) => s.setBpm);
+  const stop = useTransportStore((s) => s.stop);
+  const router = useRouter();
+
+  const filtered = activeCategory === 'all'
+    ? allPatterns
+    : allPatterns.filter((p) => p.category === activeCategory);
+
+  const handleSelect = (patternId: string) => {
+    const pattern = allPatterns.find((p) => p.id === patternId);
+    if (!pattern) return;
+    stop();
+    loadPattern(pattern);
+    setBpm(pattern.defaultBpm);
+    router.push('/practice');
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen">
+      <Header />
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold mb-2">Pattern Library</h1>
+          <p className="text-gray-400 text-sm">
+            Choose a pattern to practice. Click any pattern to load it in the practice view.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Category filter */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`
+                px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer
+                ${activeCategory === cat.id
+                  ? 'bg-white text-gray-900'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'
+                }
+              `}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Pattern grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((pattern) => (
+            <button
+              key={pattern.id}
+              onClick={() => handleSelect(pattern.id)}
+              className="text-left bg-[#1a1d27] rounded-xl p-4 border border-gray-800
+                         hover:border-gray-600 hover:bg-[#1e2130] transition-all cursor-pointer group"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="font-semibold text-sm group-hover:text-white transition-colors">
+                  {pattern.name}
+                </h3>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColors[pattern.category] ?? 'bg-gray-700 text-gray-400'}`}>
+                  {pattern.category}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mb-3 line-clamp-2">
+                {pattern.description}
+              </p>
+              <div className="flex items-center gap-3 text-xs text-gray-500">
+                <span>{pattern.defaultBpm} BPM</span>
+                <span>{pattern.timeSignature.beats}/{pattern.timeSignature.noteValue}</span>
+                <span>{pattern.subdivision}</span>
+                <span>{pattern.tracks.length} tracks</span>
+              </div>
+
+              {/* Mini grid preview */}
+              <div className="mt-3 flex flex-col gap-0.5">
+                {pattern.tracks.slice(0, 3).map((track, ti) => (
+                  <div key={ti} className="flex gap-px">
+                    {track.steps.map((step, si) => (
+                      <div
+                        key={si}
+                        className={`h-1.5 flex-1 rounded-sm ${
+                          step.active ? 'bg-gray-500' : 'bg-gray-800'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Keyboard shortcuts hint */}
+        <div className="mt-12 border-t border-gray-800 pt-6">
+          <h2 className="text-sm font-medium text-gray-400 mb-3">Keyboard Shortcuts</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-gray-500">
+            <div><kbd className="bg-gray-800 px-1.5 py-0.5 rounded text-gray-400">Space</kbd> Play / Pause</div>
+            <div><kbd className="bg-gray-800 px-1.5 py-0.5 rounded text-gray-400">Esc</kbd> Stop</div>
+            <div><kbd className="bg-gray-800 px-1.5 py-0.5 rounded text-gray-400">&uarr;</kbd> BPM +1</div>
+            <div><kbd className="bg-gray-800 px-1.5 py-0.5 rounded text-gray-400">Shift+&uarr;</kbd> BPM +10</div>
+          </div>
         </div>
       </main>
     </div>
