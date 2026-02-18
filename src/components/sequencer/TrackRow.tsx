@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Track } from '@/lib/patterns/types';
+import { TimingGrade } from '@/lib/live-practice/types';
 import { BeatCell } from './BeatCell';
 
 interface TrackRowProps {
@@ -11,6 +12,7 @@ interface TrackRowProps {
   stepsPerBeat: number;
   onToggleStep: (trackIndex: number, stepIndex: number) => void;
   onToggleMute: (trackIndex: number) => void;
+  stepAccuracies?: Record<string, TimingGrade>;
 }
 
 export const TrackRow = React.memo(function TrackRow({
@@ -20,6 +22,7 @@ export const TrackRow = React.memo(function TrackRow({
   stepsPerBeat,
   onToggleStep,
   onToggleMute,
+  stepAccuracies,
 }: TrackRowProps) {
   return (
     <div className="flex items-center gap-2">
@@ -36,6 +39,7 @@ export const TrackRow = React.memo(function TrackRow({
       <div className="flex gap-0.5 sm:gap-1">
         {track.steps.map((step, stepIndex) => {
           const isDownbeat = stepIndex % stepsPerBeat === 0;
+          const accuracyKey = `${stepIndex}-${track.instrumentId}`;
           return (
             <BeatCell
               key={stepIndex}
@@ -45,6 +49,7 @@ export const TrackRow = React.memo(function TrackRow({
               isDownbeat={isDownbeat}
               instrumentId={track.instrumentId}
               onClick={() => onToggleStep(trackIndex, stepIndex)}
+              accuracyGrade={stepAccuracies?.[accuracyKey] ?? null}
             />
           );
         })}

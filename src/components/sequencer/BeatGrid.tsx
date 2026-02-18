@@ -3,6 +3,7 @@
 import React from 'react';
 import { usePatternStore } from '@/lib/store/usePatternStore';
 import { useTransportStore } from '@/lib/store/useTransportStore';
+import { TimingGrade } from '@/lib/live-practice/types';
 import { TrackRow } from './TrackRow';
 
 function getStepsPerBeat(subdivision: string): number {
@@ -13,7 +14,11 @@ function getStepsPerBeat(subdivision: string): number {
   }
 }
 
-export function BeatGrid() {
+interface BeatGridProps {
+  stepAccuracies?: Record<string, TimingGrade>;
+}
+
+export function BeatGrid({ stepAccuracies }: BeatGridProps) {
   const currentPattern = usePatternStore((s) => s.currentPattern);
   const toggleStep = usePatternStore((s) => s.toggleStep);
   const toggleTrackMute = usePatternStore((s) => s.toggleTrackMute);
@@ -76,6 +81,7 @@ export function BeatGrid() {
             stepsPerBeat={stepsPerBeat}
             onToggleStep={toggleStep}
             onToggleMute={toggleTrackMute}
+            stepAccuracies={stepAccuracies}
           />
         ))}
       </div>

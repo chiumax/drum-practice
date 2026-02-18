@@ -1,0 +1,104 @@
+'use client';
+
+import { useLivePracticeStore } from '@/lib/store/useLivePracticeStore';
+import { GRADE_TEXT_COLORS } from '@/lib/live-practice/types';
+
+interface LiveResultsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onRetry: () => void;
+}
+
+export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalProps) {
+  const stats = useLivePracticeStore((s) => s.stats);
+
+  if (!isOpen || stats.totalExpected === 0) return null;
+
+  const accuracy = Math.round((stats.totalHits / stats.totalExpected) * 100);
+  const avgOffsetMs = Math.round(stats.averageOffset * 1000);
+
+  let overallGrade: string;
+  let gradeColor: string;
+  if (accuracy >= 90) { overallGrade = 'Excellent'; gradeColor = 'text-green-400'; }
+  else if (accuracy >= 75) { overallGrade = 'Great'; gradeColor = 'text-lime-400'; }
+  else if (accuracy >= 60) { overallGrade = 'Good'; gradeColor = 'text-yellow-400'; }
+  else if (accuracy >= 40) { overallGrade = 'Keep Practicing'; gradeColor = 'text-orange-400'; }
+  else { overallGrade = 'Try Slower'; gradeColor = 'text-red-400'; }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="bg-[#1a1d27] rounded-2xl p-6 border border-gray-700 max-w-sm w-full mx-4">
+        <h2 className="text-lg font-bold text-center mb-1">Session Complete</h2>
+        <div className={`text-center text-2xl font-bold mb-4 ${gradeColor}`}>
+          {overallGrade}
+        </div>
+
+        {/* Big accuracy number */}
+        <div className="text-center mb-4">
+          <div className="text-5xl font-bold text-white">{accuracy}%</div>
+          <div className="text-sm text-gray-500 mt-1">
+            {stats.totalHits}/{stats.totalExpected} hits
+          </div>
+        </div>
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+            <div className="text-lg font-bold text-white">{stats.bestStreak}</div>
+            <div className="text-xs text-gray-500">Best Streak</div>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+            <div className="text-lg font-bold text-white">
+              {avgOffsetMs > 0 ? '+' : ''}{avgOffsetMs}ms
+            </div>
+            <div className="text-xs text-gray-500">Avg Timing</div>
+          </div>
+        </div>
+
+        {/* Grade breakdown */}
+        <div className="bg-gray-800/50 rounded-lg p-3 mb-5">
+          <div className="grid grid-cols-5 gap-1 text-center text-xs">
+            <div>
+              <div className={`font-bold ${GRADE_TEXT_COLORS.perfect}`}>{stats.perfectCount}</div>
+              <div className="text-gray-600">Perfect</div>
+            </div>
+            <div>
+              <div className={`font-bold ${GRADE_TEXT_COLORS.great}`}>{stats.greatCount}</div>
+              <div className="text-gray-600">Great</div>
+            </div>
+            <div>
+              <div className={`font-bold ${GRADE_TEXT_COLORS.good}`}>{stats.goodCount}</div>
+              <div className="text-gray-600">Good</div>
+            </div>
+            <div>
+              <div className={`font-bold ${GRADE_TEXT_COLORS.early}`}>{stats.earlyLateCount}</div>
+              <div className="text-gray-600">Off</div>
+            </div>
+            <div>
+              <div className={`font-bold ${GRADE_TEXT_COLORS.miss}`}>{stats.totalMisses}</div>
+              <div className="text-gray-600">Miss</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3">
+          <button
+            onClick={onRetry}
+            className="flex-1 h-10 rounded-lg bg-white text-gray-900 font-medium text-sm
+                       hover:bg-gray-200 active:scale-95 transition-all cursor-pointer"
+          >
+            Try Again
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 h-10 rounded-lg bg-gray-700 text-gray-300 font-medium text-sm
+                       hover:bg-gray-600 active:scale-95 transition-all cursor-pointer"
+          >
+            Back to Patterns
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

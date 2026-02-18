@@ -18,6 +18,16 @@ export class Scheduler {
   // Callbacks for practice mode
   private onBarComplete: ((barCount: number) => void) | null = null;
 
+  // External step listeners (used by live practice)
+  private stepListeners: StepCallback[] = [];
+
+  addStepListener(cb: StepCallback): () => void {
+    this.stepListeners.push(cb);
+    return () => {
+      this.stepListeners = this.stepListeners.filter((l) => l !== cb);
+    };
+  }
+
   private readonly LOOKAHEAD_MS = 25;
   private readonly SCHEDULE_AHEAD_S = 0.1;
 
@@ -94,6 +104,7 @@ export class Scheduler {
 
       const scheduledTime = this.nextStepTime + swingOffset;
       this.onStep?.(this.currentStep, scheduledTime);
+      this.stepListeners.forEach((l) => l(this.currentStep, scheduledTime));
 
       // Track bar progress
       this.stepsInCurrentBar++;

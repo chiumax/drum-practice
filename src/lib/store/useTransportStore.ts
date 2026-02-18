@@ -4,7 +4,7 @@ import { Scheduler } from '../audio/Scheduler';
 import { playInstrument } from '../audio/DrumSynth';
 import { audioEngine } from '../audio/AudioEngine';
 
-const scheduler = new Scheduler();
+export const scheduler = new Scheduler();
 
 // Lazy accessors to avoid circular imports
 function getPatternState() {
