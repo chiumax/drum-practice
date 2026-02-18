@@ -2,6 +2,9 @@ import { rockPatterns } from './rock';
 import { funkPatterns } from './funk';
 import { latinPatterns } from './latin';
 import { rudimentPatterns } from './rudiments';
+import { jazzPatterns } from './jazz';
+import { electronicPatterns } from './electronic';
+import { polyrhythmPatterns } from './polyrhythms';
 import { DrumPattern, PatternCategory } from './types';
 
 export const allPatterns: DrumPattern[] = [
@@ -9,6 +12,9 @@ export const allPatterns: DrumPattern[] = [
   ...funkPatterns,
   ...latinPatterns,
   ...rudimentPatterns,
+  ...jazzPatterns,
+  ...electronicPatterns,
+  ...polyrhythmPatterns,
 ];
 
 export function getPatternsByCategory(category: PatternCategory): DrumPattern[] {
@@ -26,4 +32,7 @@ export const categories: { id: PatternCategory | 'all'; label: string }[] = [
   { id: 'latin', label: 'Latin' },
   { id: 'world', label: 'World' },
   { id: 'rudiment', label: 'Rudiments' },
+  { id: 'jazz', label: 'Jazz' },
+  { id: 'electronic', label: 'Electronic' },
+  { id: 'polyrhythm', label: 'Polyrhythm' },
 ];

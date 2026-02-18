@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-02-18
+
+### Added
+- **21 new drum patterns** across 3 new genres + expanded existing categories:
+  - Jazz (4): Jazz Ride Pattern, Jazz Brushes, Jazz Waltz, Bebop Comping
+  - Electronic (5): House Beat, Techno, Trap Beat, Drum & Bass, Lo-Fi Hip Hop
+  - Polyrhythm (6): 3 over 2, 4 over 3, 3 over 4, 5 over 4, 6 over 4 (Hemiola), Polyrhythmic Rock
+  - Rock (4 new): Half-Time Rock, Rock Ballad, Punk Rock, Tom Groove
+  - Funk (3 new): JB Funk, Ghost Note Funk, Linear Funk
+  - Latin (3 new): Samba, Cascara, Cha-Cha
+- **Playback auto-stop** — music stops automatically when navigating between pages or switching browser tabs
+- Total pattern count: 12 → 33
+
+### Changed
+- Pattern category type expanded to include `jazz`, `electronic`, and `polyrhythm`
+- Category filter UI updated with new genre colors (amber for jazz, blue for electronic, pink for polyrhythm)
+
 ## [0.2.0] - 2026-02-18
 
 ### Added

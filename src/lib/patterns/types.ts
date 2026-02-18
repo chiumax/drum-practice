@@ -30,7 +30,7 @@ export interface TimeSignature {
   noteValue: number;
 }
 
-export type PatternCategory = 'rock' | 'funk' | 'latin' | 'world' | 'rudiment';
+export type PatternCategory = 'rock' | 'funk' | 'latin' | 'world' | 'rudiment' | 'jazz' | 'electronic' | 'polyrhythm';
 
 export type Hand = 'R' | 'L';
 

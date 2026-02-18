@@ -69,4 +69,75 @@ export const basicShuffle: DrumPattern = {
   ],
 };
 
-export const rockPatterns = [basicRockBeat, rockBeat16th, fourOnTheFloor, basicShuffle];
+export const halftimeBeat: DrumPattern = {
+  id: 'rock-halftime',
+  name: 'Half-Time Rock',
+  description: 'A half-time feel — snare on beat 3 instead of 2 & 4, creating a heavy, spacious groove.',
+  category: 'rock',
+  timeSignature: { beats: 4, noteValue: 4 },
+  subdivision: '8th',
+  defaultBpm: 130,
+  totalSteps: 8,
+  tags: ['beginner', 'half-time'],
+  tracks: [
+    { instrumentId: 'hihat-closed', label: 'Hi-Hat', muted: false, volume: 0.6, steps: boolsToSteps([1,1,1,1,1,1,1,1]) },
+    { instrumentId: 'snare', label: 'Snare', muted: false, volume: 0.9, steps: boolsToSteps([0,0,0,0,1,0,0,0]) },
+    { instrumentId: 'kick', label: 'Kick', muted: false, volume: 1.0, steps: boolsToSteps([1,0,0,0,0,0,1,0]) },
+  ],
+};
+
+export const rockBallad: DrumPattern = {
+  id: 'rock-ballad',
+  name: 'Rock Ballad',
+  description: 'A slow, open rock ballad pattern with crash accents and ride cymbal.',
+  category: 'rock',
+  timeSignature: { beats: 4, noteValue: 4 },
+  subdivision: '8th',
+  defaultBpm: 72,
+  totalSteps: 8,
+  tags: ['beginner', 'ballad'],
+  tracks: [
+    { instrumentId: 'ride', label: 'Ride', muted: false, volume: 0.6, steps: boolsToSteps([1,1,1,1,1,1,1,1]) },
+    { instrumentId: 'crash', label: 'Crash', muted: false, volume: 0.5, steps: boolsToSteps([1,0,0,0,0,0,0,0]) },
+    { instrumentId: 'snare', label: 'Snare', muted: false, volume: 0.9, steps: boolsToSteps([0,0,1,0,0,0,1,0]) },
+    { instrumentId: 'kick', label: 'Kick', muted: false, volume: 1.0, steps: boolsToSteps([1,0,0,0,1,0,0,1]) },
+  ],
+};
+
+export const punkRock: DrumPattern = {
+  id: 'rock-punk',
+  name: 'Punk Rock',
+  description: 'Fast, driving punk beat. Straight 8ths on the hi-hat with relentless kick and snare.',
+  category: 'rock',
+  timeSignature: { beats: 4, noteValue: 4 },
+  subdivision: '8th',
+  defaultBpm: 180,
+  totalSteps: 8,
+  tags: ['intermediate', 'punk', 'fast'],
+  tracks: [
+    { instrumentId: 'hihat-closed', label: 'Hi-Hat', muted: false, volume: 0.7, steps: boolsToSteps([1,1,1,1,1,1,1,1]) },
+    { instrumentId: 'snare', label: 'Snare', muted: false, volume: 1.0, steps: boolsToSteps([0,1,0,1,0,1,0,1]) },
+    { instrumentId: 'kick', label: 'Kick', muted: false, volume: 1.0, steps: boolsToSteps([1,1,1,1,1,1,1,1]) },
+  ],
+};
+
+export const rockFillGroove: DrumPattern = {
+  id: 'rock-tom-groove',
+  name: 'Tom Groove',
+  description: 'A rock groove incorporating toms for a bigger, more tribal feel.',
+  category: 'rock',
+  timeSignature: { beats: 4, noteValue: 4 },
+  subdivision: '8th',
+  defaultBpm: 100,
+  totalSteps: 8,
+  tags: ['intermediate', 'toms'],
+  tracks: [
+    { instrumentId: 'hihat-closed', label: 'Hi-Hat', muted: false, volume: 0.6, steps: boolsToSteps([1,1,1,1,1,1,1,1]) },
+    { instrumentId: 'tom-high', label: 'High Tom', muted: false, volume: 0.7, steps: boolsToSteps([0,0,0,0,0,0,1,0]) },
+    { instrumentId: 'tom-mid', label: 'Mid Tom', muted: false, volume: 0.7, steps: boolsToSteps([0,0,0,0,0,0,0,1]) },
+    { instrumentId: 'snare', label: 'Snare', muted: false, volume: 0.9, steps: boolsToSteps([0,0,1,0,0,0,0,0]) },
+    { instrumentId: 'kick', label: 'Kick', muted: false, volume: 1.0, steps: boolsToSteps([1,0,0,0,1,0,0,0]) },
+  ],
+};
+
+export const rockPatterns = [basicRockBeat, rockBeat16th, fourOnTheFloor, basicShuffle, halftimeBeat, rockBallad, punkRock, rockFillGroove];

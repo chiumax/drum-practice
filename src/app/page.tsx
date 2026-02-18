@@ -14,6 +14,9 @@ const categoryColors: Record<string, string> = {
   latin: 'bg-yellow-500/20 text-yellow-400',
   world: 'bg-green-500/20 text-green-400',
   rudiment: 'bg-cyan-500/20 text-cyan-400',
+  jazz: 'bg-amber-500/20 text-amber-400',
+  electronic: 'bg-blue-500/20 text-blue-400',
+  polyrhythm: 'bg-pink-500/20 text-pink-400',
 };
 
 export default function Home() {
