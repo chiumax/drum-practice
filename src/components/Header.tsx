@@ -7,6 +7,7 @@ const nav = [
   { href: '/', label: 'Patterns' },
   { href: '/practice', label: 'Practice' },
   { href: '/live', label: 'Live' },
+  { href: '/sight-reading', label: 'Sight Read' },
 ];
 
 export function Header() {

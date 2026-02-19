@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-02-19
+
+### Added
+- **Piano Sight Reading Practice** (`/sight-reading`) — learn to read music notation with a virtual piano
+  - Three practice modes: Note Drill (identify single notes), Interval Training (play two-note intervals), Phrase Reading (play short melodies)
+  - SVG music staff with treble clef, note heads, sharps, ledger lines
+  - On-screen 2-octave piano keyboard (C3-B4) with click/touch support
+  - Computer keyboard mapping: Z-M row for C3-B3, Q-U row for C4-B4 (standard DAW layout)
+  - Three difficulty levels: Beginner (natural notes, 1 octave), Intermediate (all notes, 2 octaves), Advanced (wider intervals, longer phrases)
+  - Real-time stats: accuracy %, streak, best streak, average response time
+  - Piano tone synthesis using layered sine oscillators (fundamental + 2 harmonics) via Web Audio API
+  - Interval name display for educational feedback (e.g., "Major 3rd", "Perfect 5th")
+  - Auto-advance to next challenge after completion
+- Header navigation updated with "Sight Read" link
+
 ## [0.3.0] - 2026-02-18
 
 ### Added
