@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { usePracticeHistoryStore, getSessionsForPattern } from '@/lib/store/usePracticeHistoryStore';
 import { PatternAccuracySparkline } from './PatternAccuracySparkline';
+import { TimingBreakdownBar } from './TimingBreakdownBar';
 import { getMasteryLevel, getMasteryColor } from '@/lib/spaced-repetition/sm2';
 
 export function PatternProgressList() {
@@ -84,34 +85,51 @@ export function PatternProgressList() {
 
               {isExpanded && (
                 <div className="px-4 pb-3">
-                  <div className="text-[10px] text-gray-600 grid grid-cols-4 gap-2 mb-1 px-2">
+                  <div className="text-[10px] text-gray-600 grid grid-cols-5 gap-2 mb-1 px-2">
                     <span>Date</span>
                     <span>Mode</span>
                     <span>BPM</span>
                     <span>Accuracy</span>
+                    <span>Trend</span>
                   </div>
-                  <div className="max-h-48 overflow-y-auto space-y-0.5">
-                    {patternSessions.slice(0, 20).map((session) => {
+                  <div className="max-h-64 overflow-y-auto space-y-0.5">
+                    {patternSessions.slice(0, 20).map((session, idx) => {
                       const date = new Date(session.startedAt);
                       const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
                       const duration = Math.round(session.durationMs / 1000);
+                      // Compare to next (older) session of same mode
+                      const nextSession = patternSessions[idx + 1];
+                      const delta = session.accuracy !== null && nextSession?.accuracy !== null
+                        ? session.accuracy - nextSession.accuracy
+                        : null;
                       return (
-                        <div
-                          key={session.id}
-                          className="text-xs text-gray-400 grid grid-cols-4 gap-2 px-2 py-1 rounded hover:bg-gray-800/50"
-                        >
-                          <span>{dateStr}</span>
-                          <span>{session.mode}</span>
-                          <span>{session.bpm}</span>
-                          <span>
-                            {session.accuracy !== null ? (
-                              <span className={session.accuracy >= 70 ? 'text-green-400' : session.accuracy >= 50 ? 'text-yellow-400' : 'text-red-400'}>
-                                {session.accuracy}%
-                              </span>
-                            ) : (
-                              <span className="text-gray-600">{duration}s</span>
-                            )}
-                          </span>
+                        <div key={session.id}>
+                          <div className="text-xs text-gray-400 grid grid-cols-5 gap-2 px-2 py-1 rounded hover:bg-gray-800/50">
+                            <span>{dateStr}</span>
+                            <span>{session.mode}</span>
+                            <span>{session.bpm}</span>
+                            <span>
+                              {session.accuracy !== null ? (
+                                <span className={session.accuracy >= 70 ? 'text-green-400' : session.accuracy >= 50 ? 'text-yellow-400' : 'text-red-400'}>
+                                  {session.accuracy}%
+                                </span>
+                              ) : (
+                                <span className="text-gray-600">{duration}s</span>
+                              )}
+                            </span>
+                            <span>
+                              {delta !== null && delta !== 0 && (
+                                <span className={delta > 0 ? 'text-green-400' : 'text-red-400'}>
+                                  {delta > 0 ? `+${delta}` : delta}
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                          {session.stats && (
+                            <div className="px-2 mt-0.5 mb-1">
+                              <TimingBreakdownBar stats={session.stats} />
+                            </div>
+                          )}
                         </div>
                       );
                     })}

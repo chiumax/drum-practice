@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-02-27
+
+### Added
+- **Floating Grade Toast** — animated label ("Perfect!", "Great +12ms", etc.) floats up and fades after each tap during live practice
+- **Timing Deviation Indicator** — horizontal bar showing how early/late each tap is, with color-coded dot (green center → orange edges, ±100ms scale)
+- **Streak Combo Display** — combo counter appears at 3+ streak with escalating visual tiers:
+  - 3–9: green glow ("Streak")
+  - 10–19: yellow pulse ("On Fire")
+  - 20+: orange pulsing glow ("Unstoppable")
+  - "Streak Lost" flash on break
+- **Bar History Strip** — rolling strip of per-bar accuracy blocks below the beat grid, showing last 12 bars color-coded by accuracy
+- **Timing Distribution Bar** — stacked colored bar showing percentage breakdown of perfect/great/good/off/miss grades (shown in results modal and progress page)
+- **Session Comparison** — results modal now shows accuracy delta vs previous session ("↑12% from last session" or "↓5%")
+- **Bar-by-Bar Trend** — mini bar chart in results modal showing accuracy progression across bars within a session
+- **Avg Accuracy** tile added to progress dashboard overall stats row
+- **Trend Arrows** in progress page per-pattern session list showing accuracy change between sessions
+
+### Changed
+- Live practice store tracks `lastTapOffset`, `streakBroken`, and per-bar hit/total counters
+- `SessionStats` now includes `barHistory` for post-session analysis
+- Results modal redesigned with timing distribution bar, previous session comparison, and bar trend chart
+- Progress page pattern details now show timing breakdown bars per session
+- Overall stats row expanded from 4 to 5 tiles (added avg accuracy)
+
 ## [0.5.0] - 2026-02-19
 
 ### Added

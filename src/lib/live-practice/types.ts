@@ -33,6 +33,12 @@ export interface StepAccuracy {
   offset: number;
 }
 
+export interface BarAccuracy {
+  accuracy: number;
+  hits: number;
+  total: number;
+}
+
 export interface SessionStats {
   totalExpected: number;
   totalHits: number;
@@ -44,6 +50,7 @@ export interface SessionStats {
   averageOffset: number;
   currentStreak: number;
   bestStreak: number;
+  barHistory: BarAccuracy[];
 }
 
 export interface KeyMapping {

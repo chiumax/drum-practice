@@ -2,8 +2,9 @@
 
 import { useLivePracticeStore } from '@/lib/store/useLivePracticeStore';
 import { usePatternStore } from '@/lib/store/usePatternStore';
-import { usePracticeHistoryStore } from '@/lib/store/usePracticeHistoryStore';
+import { usePracticeHistoryStore, getLastLiveSessionForPattern } from '@/lib/store/usePracticeHistoryStore';
 import { GRADE_TEXT_COLORS } from '@/lib/live-practice/types';
+import { TimingBreakdownBar } from '@/components/progress/TimingBreakdownBar';
 
 interface LiveResultsModalProps {
   isOpen: boolean;
@@ -21,6 +22,11 @@ export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalP
   const accuracy = Math.round((stats.totalHits / stats.totalExpected) * 100);
   const avgOffsetMs = Math.round(stats.averageOffset * 1000);
 
+  // Previous session comparison
+  const prevSession = getLastLiveSessionForPattern(patternId);
+  const prevAccuracy = prevSession?.accuracy ?? null;
+  const accuracyDelta = prevAccuracy !== null ? accuracy - prevAccuracy : null;
+
   let overallGrade: string;
   let gradeColor: string;
   if (accuracy >= 90) { overallGrade = 'Excellent'; gradeColor = 'text-green-400'; }
@@ -31,18 +37,33 @@ export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#1a1d27] rounded-2xl p-6 border border-gray-700 max-w-sm w-full mx-4">
+      <div className="bg-[#1a1d27] rounded-2xl p-6 border border-gray-700 max-w-sm w-full mx-4 max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-bold text-center mb-1">Session Complete</h2>
         <div className={`text-center text-2xl font-bold mb-4 ${gradeColor}`}>
           {overallGrade}
         </div>
 
         {/* Big accuracy number */}
-        <div className="text-center mb-4">
+        <div className="text-center mb-1">
           <div className="text-5xl font-bold text-white">{accuracy}%</div>
           <div className="text-sm text-gray-500 mt-1">
             {stats.totalHits}/{stats.totalExpected} hits
           </div>
+        </div>
+
+        {/* vs Previous session */}
+        {accuracyDelta !== null && (
+          <div className="text-center mb-4">
+            <span className={`text-sm font-medium ${accuracyDelta > 0 ? 'text-green-400' : accuracyDelta < 0 ? 'text-red-400' : 'text-gray-400'}`}>
+              {accuracyDelta > 0 ? `+${accuracyDelta}%` : accuracyDelta < 0 ? `${accuracyDelta}%` : '='} from last session
+            </span>
+          </div>
+        )}
+        {accuracyDelta === null && <div className="mb-4" />}
+
+        {/* Timing distribution bar */}
+        <div className="mb-4">
+          <TimingBreakdownBar stats={stats} />
         </div>
 
         {/* Stats grid */}
@@ -60,7 +81,7 @@ export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalP
         </div>
 
         {/* Grade breakdown */}
-        <div className="bg-gray-800/50 rounded-lg p-3 mb-5">
+        <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
           <div className="grid grid-cols-5 gap-1 text-center text-xs">
             <div>
               <div className={`font-bold ${GRADE_TEXT_COLORS.perfect}`}>{stats.perfectCount}</div>
@@ -84,6 +105,29 @@ export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalP
             </div>
           </div>
         </div>
+
+        {/* Bar-by-bar trend */}
+        {stats.barHistory.length > 1 && (
+          <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
+            <div className="text-[10px] text-gray-500 mb-2">Bar-by-Bar Accuracy</div>
+            <div className="flex items-end gap-0.5 h-8">
+              {stats.barHistory.map((bar, i) => (
+                <div
+                  key={i}
+                  className="flex-1 rounded-t-sm transition-all"
+                  style={{
+                    height: `${Math.max(10, bar.accuracy)}%`,
+                    backgroundColor: bar.accuracy >= 80 ? '#4ade80'
+                      : bar.accuracy >= 60 ? '#eab308'
+                      : bar.accuracy >= 40 ? '#f97316'
+                      : '#ef4444',
+                    opacity: 0.5 + (bar.accuracy / 200),
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Next review info */}
         {card && (

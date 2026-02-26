@@ -6,6 +6,7 @@ import {
   TimingGrade,
   SessionStats,
   StepAccuracy,
+  BarAccuracy,
   KeyMapping,
   DEFAULT_KEY_MAPPINGS,
 } from '../live-practice/types';
@@ -22,6 +23,7 @@ function emptyStats(): SessionStats {
     averageOffset: 0,
     currentStreak: 0,
     bestStreak: 0,
+    barHistory: [],
   };
 }
 
@@ -37,6 +39,12 @@ interface LivePracticeStore {
   stepAccuracies: Record<string, StepAccuracy>;
   lastTapGrade: TimingGrade | null;
   lastTapInstrument: InstrumentId | null;
+  lastTapOffset: number;
+  streakBroken: boolean;
+
+  barHistory: BarAccuracy[];
+  barHits: number;
+  barTotal: number;
 
   stats: SessionStats;
   keyMappings: KeyMapping[];
@@ -49,6 +57,8 @@ interface LivePracticeStore {
   recordMiss: (step: number, instrumentId: InstrumentId) => void;
   setStepAccuracy: (step: number, instrumentId: InstrumentId, grade: TimingGrade, offset: number) => void;
   resetStepAccuracies: () => void;
+  recordBarEnd: () => void;
+  clearStreakBroken: () => void;
 }
 
 export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
@@ -59,6 +69,12 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
   stepAccuracies: {},
   lastTapGrade: null,
   lastTapInstrument: null,
+  lastTapOffset: 0,
+  streakBroken: false,
+
+  barHistory: [],
+  barHits: 0,
+  barTotal: 0,
 
   stats: emptyStats(),
   keyMappings: DEFAULT_KEY_MAPPINGS,
@@ -74,23 +90,35 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
       stepAccuracies: {},
       lastTapGrade: null,
       lastTapInstrument: null,
+      lastTapOffset: 0,
+      streakBroken: false,
+      barHistory: [],
+      barHits: 0,
+      barTotal: 0,
     }),
 
   endSession: () => set({ isActive: false }),
 
   recordTap: (tap: TapEvent) => {
     const stats = { ...get().stats };
+    const prevStreak = stats.currentStreak;
+    let broken = false;
+    let barHits = get().barHits;
+    let barTotal = get().barTotal;
 
     if (tap.matchedStep !== null) {
-      stats.totalExpected++; // count toward expected since it was matched
+      stats.totalExpected++;
+      barTotal++;
       if (isHit(tap.grade)) {
         stats.totalHits++;
         stats.currentStreak++;
+        barHits++;
         if (stats.currentStreak > stats.bestStreak) {
           stats.bestStreak = stats.currentStreak;
         }
       } else {
         stats.earlyLateCount++;
+        if (prevStreak > 2) broken = true;
         stats.currentStreak = 0;
       }
 
@@ -112,11 +140,16 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
       stats,
       lastTapGrade: tap.grade,
       lastTapInstrument: tap.instrumentId,
+      lastTapOffset: tap.offset,
+      barHits,
+      barTotal,
+      ...(broken ? { streakBroken: true } : {}),
     });
   },
 
   recordMiss: (step: number, instrumentId: InstrumentId) => {
     const stats = { ...get().stats };
+    const prevStreak = stats.currentStreak;
     stats.totalExpected++;
     stats.totalMisses++;
     stats.currentStreak = 0;
@@ -125,7 +158,12 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
     const accuracies = { ...get().stepAccuracies };
     accuracies[key] = { step, instrumentId, grade: 'miss', offset: 0 };
 
-    set({ stats, stepAccuracies: accuracies });
+    set({
+      stats,
+      stepAccuracies: accuracies,
+      barTotal: get().barTotal + 1,
+      ...(prevStreak > 2 ? { streakBroken: true } : {}),
+    });
   },
 
   setStepAccuracy: (step: number, instrumentId: InstrumentId, grade: TimingGrade, offset: number) => {
@@ -136,4 +174,16 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
   },
 
   resetStepAccuracies: () => set({ stepAccuracies: {} }),
+
+  recordBarEnd: () => {
+    const { barHits, barTotal, barHistory, stats } = get();
+    if (barTotal === 0) return;
+    const accuracy = Math.round((barHits / barTotal) * 100);
+    const entry: BarAccuracy = { accuracy, hits: barHits, total: barTotal };
+    const newHistory = [...barHistory, entry].slice(-16);
+    const newStats = { ...stats, barHistory: [...stats.barHistory, entry] };
+    set({ barHistory: newHistory, barHits: 0, barTotal: 0, stats: newStats });
+  },
+
+  clearStreakBroken: () => set({ streakBroken: false }),
 }));

@@ -30,15 +30,22 @@ export function OverallStatsRow() {
   const streak = computeStreak(days);
   const uniquePatterns = new Set(sessions.map((s) => s.patternId)).size;
 
+  // Average accuracy across live sessions
+  const liveSessions = sessions.filter((s) => s.accuracy !== null);
+  const avgAccuracy = liveSessions.length > 0
+    ? Math.round(liveSessions.reduce((sum, s) => sum + s.accuracy!, 0) / liveSessions.length)
+    : null;
+
   const tiles = [
     { label: 'Total Time', value: sessions.length > 0 ? formatDuration(totalMs) : '--' },
     { label: 'Sessions', value: sessions.length.toString() },
     { label: 'Patterns', value: uniquePatterns.toString() },
     { label: 'Day Streak', value: streak > 0 ? `${streak}d` : '--' },
+    { label: 'Avg Accuracy', value: avgAccuracy !== null ? `${avgAccuracy}%` : '--' },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
       {tiles.map((tile) => (
         <div
           key={tile.label}

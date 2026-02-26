@@ -10,6 +10,10 @@ import { TapPadPanel } from '@/components/live/TapPadPanel';
 import { LiveStatsPanel } from '@/components/live/LiveStatsPanel';
 import { LiveResultsModal } from '@/components/live/LiveResultsModal';
 import { ModeSelector } from '@/components/live/ModeSelector';
+import { GradeToast } from '@/components/live/GradeToast';
+import { TimingIndicator } from '@/components/live/TimingIndicator';
+import { StreakDisplay } from '@/components/live/StreakDisplay';
+import { BarHistoryStrip } from '@/components/live/BarHistoryStrip';
 import { usePatternStore } from '@/lib/store/usePatternStore';
 import { useTransportStore, scheduler } from '@/lib/store/useTransportStore';
 import { useLivePracticeStore } from '@/lib/store/useLivePracticeStore';
@@ -108,10 +112,11 @@ export default function LivePracticePage() {
     };
   }, [isActive, recordMiss]);
 
-  // Reset step accuracy display each bar (so colors don't pile up forever)
+  // Record bar accuracy + reset step accuracy display each bar
   useEffect(() => {
     const unsubscribe = scheduler.addStepListener((step) => {
       if (step === 0 && useLivePracticeStore.getState().isActive) {
+        useLivePracticeStore.getState().recordBarEnd();
         useLivePracticeStore.getState().resetStepAccuracies();
       }
     });
@@ -200,8 +205,20 @@ export default function LivePracticePage() {
         </div>
 
         {/* Beat grid with accuracy overlay */}
-        <div className="mb-4 overflow-x-auto">
+        <div className="mb-2 overflow-x-auto">
           <BeatGrid stepAccuracies={isActive || stats.totalExpected > 0 ? stepAccuracies : undefined} />
+        </div>
+
+        {/* Bar history strip */}
+        <div className="mb-4">
+          <BarHistoryStrip />
+        </div>
+
+        {/* Grade toast + timing + streak */}
+        <div className="mb-4 space-y-1">
+          <GradeToast />
+          <TimingIndicator />
+          <StreakDisplay />
         </div>
 
         {/* Controls + pads + stats */}

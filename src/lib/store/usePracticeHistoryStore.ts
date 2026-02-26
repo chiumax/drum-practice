@@ -99,6 +99,17 @@ export function getSessionsForPattern(patternId: string): PracticeSession[] {
     .sessions.filter((s) => s.patternId === patternId);
 }
 
+export function getLastLiveSessionForPattern(patternId: string): PracticeSession | null {
+  const sessions = usePracticeHistoryStore.getState().sessions;
+  // Sessions are stored most-recent-first; skip index 0 (current session just saved)
+  for (let i = 1; i < sessions.length; i++) {
+    if (sessions[i].patternId === patternId && sessions[i].mode === 'live') {
+      return sessions[i];
+    }
+  }
+  return null;
+}
+
 export function getDuePatterns(): string[] {
   const { cards } = usePracticeHistoryStore.getState();
 
