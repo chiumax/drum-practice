@@ -8,6 +8,7 @@ const nav = [
   { href: '/practice', label: 'Practice' },
   { href: '/live', label: 'Live' },
   { href: '/sight-reading', label: 'Sight Read' },
+  { href: '/progress', label: 'Progress' },
 ];
 
 export function Header() {

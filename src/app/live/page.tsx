@@ -18,6 +18,7 @@ import { TapMatcher } from '@/lib/live-practice/TapMatcher';
 import { audioEngine } from '@/lib/audio/AudioEngine';
 import { TimingGrade } from '@/lib/live-practice/types';
 import { Track } from '@/lib/patterns/types';
+import { usePracticeHistoryStore } from '@/lib/store/usePracticeHistoryStore';
 
 export default function LivePracticePage() {
   const pattern = usePatternStore((s) => s.currentPattern);
@@ -36,10 +37,14 @@ export default function LivePracticePage() {
   const resetStepAccuracies = useLivePracticeStore((s) => s.resetStepAccuracies);
   const stats = useLivePracticeStore((s) => s.stats);
 
+  const addHistorySession = usePracticeHistoryStore((s) => s.addSession);
+  const updateCard = usePracticeHistoryStore((s) => s.updateCard);
+
   const [showResults, setShowResults] = useState(false);
 
   const tapMatcherRef = useRef<TapMatcher | null>(null);
   const sweepIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sessionStartRef = useRef<number>(0);
 
   // Initialize TapMatcher
   if (!tapMatcherRef.current) {
@@ -119,12 +124,14 @@ export default function LivePracticePage() {
   // Handle play/stop with session tracking
   const handlePlay = useCallback(() => {
     tapMatcherRef.current?.reset();
+    sessionStartRef.current = Date.now();
     startSession();
     resetStepAccuracies();
     play();
   }, [play, startSession, resetStepAccuracies]);
 
   const handleStop = useCallback(() => {
+    const sessionEndTime = Date.now();
     stop();
     // Final sweep for any remaining expected beats
     if (tapMatcherRef.current) {
@@ -133,11 +140,32 @@ export default function LivePracticePage() {
       misses.forEach((miss) => rm(miss.step, miss.instrumentId));
     }
     endSession();
-    // Show results if there was data
-    if (useLivePracticeStore.getState().stats.totalExpected > 0) {
+
+    // Persist session to history
+    const finalStats = useLivePracticeStore.getState().stats;
+    const currentPattern = usePatternStore.getState().currentPattern;
+    const currentBpm = useTransportStore.getState().bpm;
+    const durationMs = sessionEndTime - sessionStartRef.current;
+
+    if (finalStats.totalExpected > 0 && durationMs > 5000) {
+      const accuracy = Math.round(
+        (finalStats.totalHits / finalStats.totalExpected) * 100
+      );
+      addHistorySession({
+        patternId: currentPattern.id,
+        patternName: currentPattern.name,
+        mode: 'live',
+        startedAt: sessionStartRef.current,
+        endedAt: sessionEndTime,
+        durationMs,
+        bpm: currentBpm,
+        accuracy,
+        stats: { ...finalStats },
+      });
+      updateCard(currentPattern.id, accuracy);
       setShowResults(true);
     }
-  }, [stop, endSession]);
+  }, [stop, endSession, addHistorySession, updateCard]);
 
   const handleRetry = useCallback(() => {
     setShowResults(false);

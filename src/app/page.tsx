@@ -7,6 +7,7 @@ import { allPatterns, categories } from '@/lib/patterns';
 import { usePatternStore } from '@/lib/store/usePatternStore';
 import { useTransportStore } from '@/lib/store/useTransportStore';
 import { PatternCategory } from '@/lib/patterns/types';
+import { DueForReviewBanner } from '@/components/home/DueForReviewBanner';
 
 const categoryColors: Record<string, string> = {
   rock: 'bg-red-500/20 text-red-400',
@@ -49,6 +50,8 @@ export default function Home() {
             Choose a pattern to practice. Click any pattern to load it in the practice view.
           </p>
         </div>
+
+        <DueForReviewBanner />
 
         {/* Category filter */}
         <div className="flex flex-wrap gap-2 mb-6">

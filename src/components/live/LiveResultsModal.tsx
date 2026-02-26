@@ -1,6 +1,8 @@
 'use client';
 
 import { useLivePracticeStore } from '@/lib/store/useLivePracticeStore';
+import { usePatternStore } from '@/lib/store/usePatternStore';
+import { usePracticeHistoryStore } from '@/lib/store/usePracticeHistoryStore';
 import { GRADE_TEXT_COLORS } from '@/lib/live-practice/types';
 
 interface LiveResultsModalProps {
@@ -11,6 +13,8 @@ interface LiveResultsModalProps {
 
 export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalProps) {
   const stats = useLivePracticeStore((s) => s.stats);
+  const patternId = usePatternStore((s) => s.currentPattern.id);
+  const card = usePracticeHistoryStore((s) => s.cards[patternId]);
 
   if (!isOpen || stats.totalExpected === 0) return null;
 
@@ -80,6 +84,14 @@ export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalP
             </div>
           </div>
         </div>
+
+        {/* Next review info */}
+        {card && (
+          <div className="text-xs text-gray-500 text-center mb-3">
+            Session saved. Next review in{' '}
+            {card.intervalDays === 1 ? '1 day' : `${card.intervalDays} days`}.
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">

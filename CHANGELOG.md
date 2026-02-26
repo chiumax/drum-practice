@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2026-02-19
+
+### Added
+- **Practice History & Stats Tracking** — all practice sessions persisted to localStorage
+  - Every live session records: pattern, accuracy, BPM, duration, timing stats
+  - Loop/tempo-ramp sessions tracked with duration (accuracy only for live mode)
+  - Sessions survive page refresh — up to 2,000 sessions stored
+- **SM-2 Spaced Repetition** — Anki-style algorithm suggests which patterns to review next
+  - Accuracy-to-quality mapping: 95%+ = perfect recall, down to <30% = complete failure
+  - Interval progression: 1 day → 6 days → interval × ease factor (capped at 365 days)
+  - Ease factor adjusts based on performance (min 1.3, starts at 2.5)
+  - Mastery levels: New → Learning → Familiar → Mastered (based on successful repetitions)
+- **Progress Dashboard** (`/progress`) — comprehensive practice analytics page
+  - Overall stats row: total practice time, session count, patterns practiced, daily streak
+  - Due for Review section: horizontal scroll of patterns needing practice, sorted by overdue time
+  - Practice Calendar: 12-week GitHub-style heat map showing daily practice intensity
+  - Pattern Progress List: per-pattern accordion with accuracy sparklines, best scores, session history
+- **Due for Review Banner** on home page — shows count of patterns due with link to progress page
+- **Post-session feedback** — "Next review in X days" shown in live results modal after each session
+- Header navigation updated with "Progress" link
+
+### Changed
+- Live practice page now saves sessions and updates spaced repetition cards on stop
+- Practice page now saves loop/tempo-ramp sessions on stop (guard: minimum 5 seconds)
+- LiveResultsModal shows next review timing from updated SM-2 card
+
 ## [0.4.0] - 2026-02-19
 
 ### Added

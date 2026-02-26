@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Header } from '@/components/Header';
 import { BeatGrid } from '@/components/sequencer/BeatGrid';
 import { TransportControls } from '@/components/controls/TransportControls';
@@ -13,6 +13,7 @@ import { PracticeStats } from '@/components/practice/PracticeStats';
 import { usePatternStore } from '@/lib/store/usePatternStore';
 import { useTransportStore } from '@/lib/store/useTransportStore';
 import { usePracticeStore } from '@/lib/store/usePracticeStore';
+import { usePracticeHistoryStore } from '@/lib/store/usePracticeHistoryStore';
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 
 export default function PracticePage() {
@@ -27,6 +28,9 @@ export default function PracticePage() {
   const practiceMode = usePracticeStore((s) => s.mode);
   const tempoRampConfig = usePracticeStore((s) => s.tempoRampConfig);
   const startSession = usePracticeStore((s) => s.startSession);
+  const addHistorySession = usePracticeHistoryStore((s) => s.addSession);
+
+  const sessionStartRef = useRef<number>(0);
 
   useKeyboardShortcuts();
 
@@ -34,6 +38,36 @@ export default function PracticePage() {
   useEffect(() => {
     if (playState === 'playing' && practiceMode === 'tempo-ramp') {
       startSession(bpm);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playState]);
+
+  // Track session start/stop for history
+  useEffect(() => {
+    if (playState === 'playing') {
+      sessionStartRef.current = Date.now();
+    } else if (playState === 'stopped' && sessionStartRef.current !== 0) {
+      const endTime = Date.now();
+      const durationMs = endTime - sessionStartRef.current;
+      if (durationMs > 5000) {
+        const currentPattern = usePatternStore.getState().currentPattern;
+        const currentBpm = useTransportStore.getState().bpm;
+        const mode = usePracticeStore.getState().mode;
+        addHistorySession({
+          patternId: currentPattern.id,
+          patternName: currentPattern.name,
+          mode,
+          startedAt: sessionStartRef.current,
+          endedAt: endTime,
+          durationMs,
+          bpm: currentBpm,
+          bpmStart: mode === 'tempo-ramp' ? tempoRampConfig.startBpm : undefined,
+          bpmEnd: mode === 'tempo-ramp' ? tempoRampConfig.endBpm : undefined,
+          accuracy: null,
+          stats: null,
+        });
+      }
+      sessionStartRef.current = 0;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playState]);
