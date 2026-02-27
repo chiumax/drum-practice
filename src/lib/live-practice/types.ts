@@ -1,5 +1,7 @@
 import { InstrumentId } from '../patterns/types';
 
+export type MetronomeMode = 'off' | 'every-beat' | '2-and-4' | 'one-per-bar';
+
 export const TIMING_THRESHOLDS = {
   PERFECT: 0.015,
   GREAT: 0.030,
@@ -37,6 +39,15 @@ export interface BarAccuracy {
   accuracy: number;
   hits: number;
   total: number;
+  bpm?: number;
+}
+
+export interface DetailedTapRecord {
+  step: number;
+  instrumentId: InstrumentId;
+  offset: number;
+  grade: TimingGrade;
+  barIndex: number;
 }
 
 export interface SessionStats {
@@ -51,6 +62,7 @@ export interface SessionStats {
   currentStreak: number;
   bestStreak: number;
   barHistory: BarAccuracy[];
+  detailedTaps: DetailedTapRecord[];
 }
 
 export interface KeyMapping {

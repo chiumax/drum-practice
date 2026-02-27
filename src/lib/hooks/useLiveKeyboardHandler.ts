@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { audioEngine } from '../audio/AudioEngine';
 import { playInstrument } from '../audio/DrumSynth';
 import { useLivePracticeStore } from '../store/useLivePracticeStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { TapMatcher } from '../live-practice/TapMatcher';
 
 export function useLiveKeyboardHandler(
@@ -30,8 +31,10 @@ export function useLiveKeyboardHandler(
 
       const tapTime = audioEngine.currentTime;
 
-      // Immediate audio feedback
-      playInstrument(mapping.instrumentId, tapTime, 0.8, 0.8);
+      // Immediate audio feedback (unless muted)
+      if (!useSettingsStore.getState().muteDrumSounds) {
+        playInstrument(mapping.instrumentId, tapTime, 0.8, 0.8);
+      }
 
       // Process tap through matcher
       const tapEvent = tapMatcher.processTap(tapTime, mapping.instrumentId);

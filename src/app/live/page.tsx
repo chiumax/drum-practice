@@ -4,22 +4,24 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { BeatGrid } from '@/components/sequencer/BeatGrid';
-import { TransportControls } from '@/components/controls/TransportControls';
 import { BpmControl } from '@/components/controls/BpmControl';
 import { TapPadPanel } from '@/components/live/TapPadPanel';
 import { LiveStatsPanel } from '@/components/live/LiveStatsPanel';
 import { LiveResultsModal } from '@/components/live/LiveResultsModal';
 import { ModeSelector } from '@/components/live/ModeSelector';
-import { GradeToast } from '@/components/live/GradeToast';
 import { TimingIndicator } from '@/components/live/TimingIndicator';
 import { StreakDisplay } from '@/components/live/StreakDisplay';
 import { BarHistoryStrip } from '@/components/live/BarHistoryStrip';
+import { MetronomeControls } from '@/components/live/MetronomeControls';
+import { DrillTimerSelector, DrillCountdown } from '@/components/live/DrillTimerControls';
 import { usePatternStore } from '@/lib/store/usePatternStore';
 import { useTransportStore, scheduler } from '@/lib/store/useTransportStore';
 import { useLivePracticeStore } from '@/lib/store/useLivePracticeStore';
 import { useLiveKeyboardHandler } from '@/lib/hooks/useLiveKeyboardHandler';
+import { useDrillTimer } from '@/lib/hooks/useDrillTimer';
 import { TapMatcher } from '@/lib/live-practice/TapMatcher';
 import { audioEngine } from '@/lib/audio/AudioEngine';
+import { findTempoFloor } from '@/lib/live-practice/tempoFloorAnalyzer';
 import { TimingGrade } from '@/lib/live-practice/types';
 import { Track } from '@/lib/patterns/types';
 import { usePracticeHistoryStore } from '@/lib/store/usePracticeHistoryStore';
@@ -116,7 +118,8 @@ export default function LivePracticePage() {
   useEffect(() => {
     const unsubscribe = scheduler.addStepListener((step) => {
       if (step === 0 && useLivePracticeStore.getState().isActive) {
-        useLivePracticeStore.getState().recordBarEnd();
+        const currentBpm = useTransportStore.getState().bpm;
+        useLivePracticeStore.getState().recordBarEnd(currentBpm);
         useLivePracticeStore.getState().resetStepAccuracies();
       }
     });
@@ -150,12 +153,14 @@ export default function LivePracticePage() {
     const finalStats = useLivePracticeStore.getState().stats;
     const currentPattern = usePatternStore.getState().currentPattern;
     const currentBpm = useTransportStore.getState().bpm;
+    const drillDurationMs = useLivePracticeStore.getState().drillDurationMs;
     const durationMs = sessionEndTime - sessionStartRef.current;
 
     if (finalStats.totalExpected > 0 && durationMs > 5000) {
       const accuracy = Math.round(
         (finalStats.totalHits / finalStats.totalExpected) * 100
       );
+      const tempoFloorResult = findTempoFloor(finalStats.barHistory);
       addHistorySession({
         patternId: currentPattern.id,
         patternName: currentPattern.name,
@@ -165,12 +170,17 @@ export default function LivePracticePage() {
         durationMs,
         bpm: currentBpm,
         accuracy,
-        stats: { ...finalStats },
+        stats: { ...finalStats, detailedTaps: [] },
+        drillDurationMs: drillDurationMs ?? undefined,
+        tempoFloor: tempoFloorResult?.recommendedBpm,
       });
       updateCard(currentPattern.id, accuracy);
       setShowResults(true);
     }
   }, [stop, endSession, addHistorySession, updateCard]);
+
+  // Auto-stop when drill timer expires
+  useDrillTimer(handleStop);
 
   const handleRetry = useCallback(() => {
     setShowResults(false);
@@ -214,16 +224,15 @@ export default function LivePracticePage() {
           <BarHistoryStrip />
         </div>
 
-        {/* Grade toast + timing + streak */}
-        <div className="mb-4 space-y-1">
-          <GradeToast />
+        {/* Timing + streak */}
+        <div className="mb-4 space-y-2">
           <TimingIndicator />
           <StreakDisplay />
         </div>
 
         {/* Controls + pads + stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Transport + BPM */}
+          {/* Transport + BPM + Metronome + Drill */}
           <div className="flex flex-col gap-4">
             <div className="bg-[#1a1d27] rounded-xl p-4 border border-gray-800">
               <div className="flex items-center gap-3 mb-4">
@@ -250,8 +259,15 @@ export default function LivePracticePage() {
                     <span className="text-xs text-gray-400 uppercase tracking-wider">Live</span>
                   </div>
                 )}
+                <DrillCountdown />
               </div>
               <BpmControl />
+              <div className="mt-3 pt-3 border-t border-gray-800">
+                <MetronomeControls />
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-800">
+                <DrillTimerSelector />
+              </div>
             </div>
           </div>
 

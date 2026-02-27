@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { PlayState, Track } from '../patterns/types';
 import { Scheduler } from '../audio/Scheduler';
 import { playInstrument } from '../audio/DrumSynth';
+import { playMetronomeClick } from '../audio/MetronomeClick';
 import { audioEngine } from '../audio/AudioEngine';
 
 export const scheduler = new Scheduler();
@@ -60,13 +61,47 @@ export const useTransportStore = create<TransportStore>((set, get) => ({
     const onStep = (step: number, time: number) => {
       // Re-read pattern each step to pick up live edits
       const { currentPattern: livePattern } = getPatternState();
-      livePattern.tracks.forEach((track: Track) => {
-        if (track.muted) return;
-        const s = track.steps[step];
-        if (s && s.active) {
-          playInstrument(track.instrumentId, time, s.velocity, track.volume);
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { useSettingsStore } = require('./useSettingsStore');
+      const settings = useSettingsStore.getState();
+
+      if (!settings.mutePatternPlayback) {
+        livePattern.tracks.forEach((track: Track) => {
+          if (track.muted) return;
+          const s = track.steps[step];
+          if (s && s.active) {
+            playInstrument(track.instrumentId, time, s.velocity, track.volume);
+          }
+        });
+      }
+
+      // Metronome click
+      const metronomeMode = settings.metronomeMode;
+      if (metronomeMode !== 'off') {
+        const sub = livePattern.subdivision;
+        const stepsPerBeat = sub === '8th' ? 2 : sub === '16th' ? 4 : 3;
+        if (step % stepsPerBeat === 0) {
+          const beatInBar = step / stepsPerBeat;
+          let shouldClick = false;
+          let isDownbeat = beatInBar === 0;
+          switch (metronomeMode) {
+            case 'every-beat':
+              shouldClick = true;
+              break;
+            case '2-and-4':
+              shouldClick = beatInBar === 1 || beatInBar === 3;
+              isDownbeat = false;
+              break;
+            case 'one-per-bar':
+              shouldClick = beatInBar === 0;
+              break;
+          }
+          if (shouldClick) {
+            playMetronomeClick(time, isDownbeat, settings.metronomeVolume);
+          }
         }
-      });
+      }
 
       // Schedule UI update synced to audio time
       const delayMs = Math.max(0, (time - audioEngine.currentTime) * 1000);

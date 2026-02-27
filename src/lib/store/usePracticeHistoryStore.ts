@@ -24,6 +24,8 @@ export interface PracticeSession {
   bpmEnd?: number;
   accuracy: number | null;
   stats: SessionStats | null;
+  drillDurationMs?: number;
+  tempoFloor?: number;
 }
 
 const MAX_SESSIONS = 2000;

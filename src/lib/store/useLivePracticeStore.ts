@@ -24,6 +24,7 @@ function emptyStats(): SessionStats {
     currentStreak: 0,
     bestStreak: 0,
     barHistory: [],
+    detailedTaps: [],
   };
 }
 
@@ -40,11 +41,18 @@ interface LivePracticeStore {
   lastTapGrade: TimingGrade | null;
   lastTapInstrument: InstrumentId | null;
   lastTapOffset: number;
+  perTrackOffset: Record<string, { offset: number; grade: TimingGrade }>;
   streakBroken: boolean;
 
   barHistory: BarAccuracy[];
   barHits: number;
   barTotal: number;
+  currentBarIndex: number;
+
+  // Drill timer
+  drillDurationMs: number | null;
+  drillStartedAt: number | null;
+  drillRemainingMs: number | null;
 
   stats: SessionStats;
   keyMappings: KeyMapping[];
@@ -57,8 +65,10 @@ interface LivePracticeStore {
   recordMiss: (step: number, instrumentId: InstrumentId) => void;
   setStepAccuracy: (step: number, instrumentId: InstrumentId, grade: TimingGrade, offset: number) => void;
   resetStepAccuracies: () => void;
-  recordBarEnd: () => void;
+  recordBarEnd: (currentBpm?: number) => void;
   clearStreakBroken: () => void;
+  setDrillDuration: (ms: number | null) => void;
+  updateDrillCountdown: (remainingMs: number) => void;
 }
 
 export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
@@ -70,11 +80,17 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
   lastTapGrade: null,
   lastTapInstrument: null,
   lastTapOffset: 0,
+  perTrackOffset: {},
   streakBroken: false,
 
   barHistory: [],
   barHits: 0,
   barTotal: 0,
+  currentBarIndex: 0,
+
+  drillDurationMs: null,
+  drillStartedAt: null,
+  drillRemainingMs: null,
 
   stats: emptyStats(),
   keyMappings: DEFAULT_KEY_MAPPINGS,
@@ -83,7 +99,8 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
 
   setFocusedTrack: (instrument: InstrumentId | null) => set({ focusedTrack: instrument }),
 
-  startSession: () =>
+  startSession: () => {
+    const drillDurationMs = get().drillDurationMs;
     set({
       isActive: true,
       stats: emptyStats(),
@@ -91,16 +108,21 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
       lastTapGrade: null,
       lastTapInstrument: null,
       lastTapOffset: 0,
+      perTrackOffset: {},
       streakBroken: false,
       barHistory: [],
       barHits: 0,
       barTotal: 0,
-    }),
+      currentBarIndex: 0,
+      drillStartedAt: drillDurationMs ? Date.now() : null,
+      drillRemainingMs: drillDurationMs,
+    });
+  },
 
   endSession: () => set({ isActive: false }),
 
   recordTap: (tap: TapEvent) => {
-    const stats = { ...get().stats };
+    const stats = { ...get().stats, detailedTaps: [...get().stats.detailedTaps] };
     const prevStreak = stats.currentStreak;
     let broken = false;
     let barHits = get().barHits;
@@ -109,6 +131,15 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
     if (tap.matchedStep !== null) {
       stats.totalExpected++;
       barTotal++;
+
+      stats.detailedTaps.push({
+        step: tap.matchedStep,
+        instrumentId: tap.instrumentId,
+        offset: tap.offset,
+        grade: tap.grade,
+        barIndex: get().currentBarIndex,
+      });
+
       if (isHit(tap.grade)) {
         stats.totalHits++;
         stats.currentStreak++;
@@ -136,11 +167,17 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
       }
     }
 
+    const perTrackOffset = { ...get().perTrackOffset };
+    if (tap.matchedStep !== null) {
+      perTrackOffset[tap.instrumentId] = { offset: tap.offset, grade: tap.grade };
+    }
+
     set({
       stats,
       lastTapGrade: tap.grade,
       lastTapInstrument: tap.instrumentId,
       lastTapOffset: tap.offset,
+      perTrackOffset,
       barHits,
       barTotal,
       ...(broken ? { streakBroken: true } : {}),
@@ -175,15 +212,19 @@ export const useLivePracticeStore = create<LivePracticeStore>((set, get) => ({
 
   resetStepAccuracies: () => set({ stepAccuracies: {} }),
 
-  recordBarEnd: () => {
-    const { barHits, barTotal, barHistory, stats } = get();
+  recordBarEnd: (currentBpm?: number) => {
+    const { barHits, barTotal, barHistory, stats, currentBarIndex } = get();
     if (barTotal === 0) return;
     const accuracy = Math.round((barHits / barTotal) * 100);
-    const entry: BarAccuracy = { accuracy, hits: barHits, total: barTotal };
+    const entry: BarAccuracy = { accuracy, hits: barHits, total: barTotal, bpm: currentBpm };
     const newHistory = [...barHistory, entry].slice(-16);
     const newStats = { ...stats, barHistory: [...stats.barHistory, entry] };
-    set({ barHistory: newHistory, barHits: 0, barTotal: 0, stats: newStats });
+    set({ barHistory: newHistory, barHits: 0, barTotal: 0, stats: newStats, currentBarIndex: currentBarIndex + 1 });
   },
 
   clearStreakBroken: () => set({ streakBroken: false }),
+
+  setDrillDuration: (ms: number | null) => set({ drillDurationMs: ms }),
+
+  updateDrillCountdown: (remainingMs: number) => set({ drillRemainingMs: remainingMs }),
 }));

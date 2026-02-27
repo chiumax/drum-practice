@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ALL_NOTES } from '@/lib/sight-reading/notes';
 import { NoteHead } from './NoteHead';
 
@@ -8,58 +8,40 @@ interface StaffProps {
   noteIndices: number[];
   currentNoteIndex: number;
   results?: { correct: boolean }[];
+  scrollable?: boolean;
 }
 
 // Staff dimensions
-const STAFF_WIDTH = 600;
 const STAFF_HEIGHT = 260;
 const STAFF_TOP = 60;       // Y of top staff line
 const LINE_SPACING = 14;    // pixels between staff lines
 const LEFT_MARGIN = 80;     // space for clef
 const NOTE_SPACING = 70;    // horizontal spacing between notes
+const BASE_WIDTH = 600;
 
 // Staff line positions (5 lines, top to bottom)
-// Treble clef lines from top: F5, D5, B4, G4, E4
 const STAFF_LINES = [0, 1, 2, 3, 4].map((i) => STAFF_TOP + i * LINE_SPACING);
 
-// Map staffSlot to Y position
-// staffSlot: diatonic steps from C4.
-// E4 (staffSlot=2) is on the bottom staff line (STAFF_LINES[4])
-// Each diatonic step = LINE_SPACING / 2
 function staffSlotToY(staffSlot: number): number {
-  // E4 has staffSlot = 2, sits on STAFF_LINES[4]
-  // Each step up = LINE_SPACING/2 pixels up
-  const e4Y = STAFF_LINES[4]; // bottom line
+  const e4Y = STAFF_LINES[4];
   return e4Y - (staffSlot - 2) * (LINE_SPACING / 2);
 }
 
-// Determine which ledger lines are needed for a note
 function getLedgerLines(staffSlot: number): number[] {
   const lines: number[] = [];
-
-  // Ledger lines below staff (below E4, staffSlot < 2)
-  // Middle C (C4, staffSlot=0) needs one ledger line
-  // B3 (staffSlot=-1) sits just below that ledger line (no extra)
-  // A3 (staffSlot=-2) needs the C ledger line
-  // etc.
   if (staffSlot <= 0) {
-    // Need ledger lines at staffSlot 0 (C4), -2 (A3), -4 (F3), -6 (D3)
     for (let s = 0; s >= staffSlot; s -= 2) {
       lines.push(s);
     }
   }
-
-  // Ledger lines above staff (above F5, staffSlot > 10)
   if (staffSlot >= 12) {
     for (let s = 12; s <= staffSlot; s += 2) {
       lines.push(s);
     }
   }
-
   return lines;
 }
 
-// Treble clef SVG path (simplified)
 function TrebleClef() {
   return (
     <text
@@ -79,11 +61,34 @@ export const Staff = React.memo(function Staff({
   noteIndices,
   currentNoteIndex,
   results,
+  scrollable,
 }: StaffProps) {
-  return (
+  const containerRef = useRef<HTMLDivElement>(null);
+  const noteRefs = useRef<(SVGGElement | null)[]>([]);
+
+  const needsScroll = scrollable && noteIndices.length > 7;
+  const staffWidth = needsScroll
+    ? LEFT_MARGIN + noteIndices.length * NOTE_SPACING + NOTE_SPACING
+    : BASE_WIDTH;
+
+  // Auto-scroll to current note
+  useEffect(() => {
+    if (!needsScroll || !containerRef.current) return;
+    const noteEl = noteRefs.current[currentNoteIndex];
+    if (noteEl) {
+      const container = containerRef.current;
+      const noteX = LEFT_MARGIN + currentNoteIndex * NOTE_SPACING;
+      const scrollTarget = noteX - container.clientWidth / 2;
+      container.scrollTo({ left: Math.max(0, scrollTarget), behavior: 'smooth' });
+    }
+  }, [currentNoteIndex, needsScroll]);
+
+  const svg = (
     <svg
-      viewBox={`0 0 ${STAFF_WIDTH} ${STAFF_HEIGHT}`}
-      className="w-full max-w-[600px]"
+      viewBox={`0 0 ${staffWidth} ${STAFF_HEIGHT}`}
+      className={needsScroll ? undefined : 'w-full max-w-[600px]'}
+      width={needsScroll ? staffWidth : undefined}
+      height={needsScroll ? STAFF_HEIGHT : undefined}
       preserveAspectRatio="xMidYMid meet"
     >
       {/* Staff lines */}
@@ -92,7 +97,7 @@ export const Staff = React.memo(function Staff({
           key={i}
           x1={20}
           y1={y}
-          x2={STAFF_WIDTH - 20}
+          x2={staffWidth - 20}
           y2={y}
           stroke="#4b5563"
           strokeWidth={1}
@@ -113,16 +118,15 @@ export const Staff = React.memo(function Staff({
         const isCurrent = i === currentNoteIndex;
         const result = results?.[i];
 
-        let color = '#9ca3af'; // default gray
+        let color = '#9ca3af';
         if (result) {
-          color = result.correct ? '#4ade80' : '#f87171'; // green or red
+          color = result.correct ? '#4ade80' : '#f87171';
         } else if (isCurrent) {
-          color = '#60a5fa'; // blue highlight for current
+          color = '#60a5fa';
         }
 
         return (
-          <g key={i}>
-            {/* Ledger lines */}
+          <g key={i} ref={(el) => { noteRefs.current[i] = el; }}>
             {ledgerSlots.map((slot) => {
               const ly = staffSlotToY(slot);
               return (
@@ -137,8 +141,6 @@ export const Staff = React.memo(function Staff({
                 />
               );
             })}
-
-            {/* Note head */}
             <NoteHead
               x={x}
               y={y}
@@ -150,4 +152,18 @@ export const Staff = React.memo(function Staff({
       })}
     </svg>
   );
+
+  if (needsScroll) {
+    return (
+      <div
+        ref={containerRef}
+        className="w-full max-w-[600px] overflow-x-auto"
+        style={{ scrollbarWidth: 'thin' }}
+      >
+        {svg}
+      </div>
+    );
+  }
+
+  return svg;
 });

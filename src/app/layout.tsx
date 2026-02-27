@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Drum Practice",
-  description: "Practice drum rhythms and patterns with a visual beat grid and synthesized sounds",
+  title: "Music Practice",
+  description: "Practice drums, piano sight reading, and more with interactive tools and feedback",
 };
 
 export default function RootLayout({

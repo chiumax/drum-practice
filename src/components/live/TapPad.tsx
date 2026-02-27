@@ -6,6 +6,7 @@ import { audioEngine } from '@/lib/audio/AudioEngine';
 import { playInstrument } from '@/lib/audio/DrumSynth';
 import { TapMatcher } from '@/lib/live-practice/TapMatcher';
 import { useLivePracticeStore } from '@/lib/store/useLivePracticeStore';
+import { useSettingsStore } from '@/lib/store/useSettingsStore';
 import { TimingGrade, GRADE_COLORS } from '@/lib/live-practice/types';
 
 const instrumentPadColors: Record<InstrumentId, string> = {
@@ -42,7 +43,9 @@ export const TapPad = React.memo(function TapPad({
     if (!tapMatcher || !isActive) return;
 
     const tapTime = audioEngine.currentTime;
-    playInstrument(instrumentId, tapTime, 0.8, 0.8);
+    if (!useSettingsStore.getState().muteDrumSounds) {
+      playInstrument(instrumentId, tapTime, 0.8, 0.8);
+    }
 
     const tapEvent = tapMatcher.processTap(tapTime, instrumentId);
     const store = useLivePracticeStore.getState();

@@ -2,9 +2,12 @@
 
 import { useLivePracticeStore } from '@/lib/store/useLivePracticeStore';
 import { usePatternStore } from '@/lib/store/usePatternStore';
+import { useTransportStore } from '@/lib/store/useTransportStore';
 import { usePracticeHistoryStore, getLastLiveSessionForPattern } from '@/lib/store/usePracticeHistoryStore';
 import { GRADE_TEXT_COLORS } from '@/lib/live-practice/types';
 import { TimingBreakdownBar } from '@/components/progress/TimingBreakdownBar';
+import { analyzeFeedback } from '@/lib/live-practice/feedbackAnalyzer';
+import { findTempoFloor } from '@/lib/live-practice/tempoFloorAnalyzer';
 
 interface LiveResultsModalProps {
   isOpen: boolean;
@@ -14,8 +17,9 @@ interface LiveResultsModalProps {
 
 export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalProps) {
   const stats = useLivePracticeStore((s) => s.stats);
-  const patternId = usePatternStore((s) => s.currentPattern.id);
-  const card = usePracticeHistoryStore((s) => s.cards[patternId]);
+  const pattern = usePatternStore((s) => s.currentPattern);
+  const currentBpm = useTransportStore((s) => s.bpm);
+  const card = usePracticeHistoryStore((s) => s.cards[pattern.id]);
 
   if (!isOpen || stats.totalExpected === 0) return null;
 
@@ -23,7 +27,7 @@ export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalP
   const avgOffsetMs = Math.round(stats.averageOffset * 1000);
 
   // Previous session comparison
-  const prevSession = getLastLiveSessionForPattern(patternId);
+  const prevSession = getLastLiveSessionForPattern(pattern.id);
   const prevAccuracy = prevSession?.accuracy ?? null;
   const accuracyDelta = prevAccuracy !== null ? accuracy - prevAccuracy : null;
 
@@ -34,6 +38,9 @@ export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalP
   else if (accuracy >= 60) { overallGrade = 'Good'; gradeColor = 'text-yellow-400'; }
   else if (accuracy >= 40) { overallGrade = 'Keep Practicing'; gradeColor = 'text-orange-400'; }
   else { overallGrade = 'Try Slower'; gradeColor = 'text-red-400'; }
+
+  const feedbackMessages = analyzeFeedback(stats, currentBpm, pattern.totalSteps);
+  const tempoFloorResult = findTempoFloor(stats.barHistory);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -105,6 +112,42 @@ export function LiveResultsModal({ isOpen, onClose, onRetry }: LiveResultsModalP
             </div>
           </div>
         </div>
+
+        {/* Coaching feedback */}
+        {feedbackMessages.length > 0 && (
+          <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
+            <div className="text-[10px] text-gray-500 mb-2 uppercase tracking-wider">Coaching</div>
+            <div className="space-y-1.5">
+              {feedbackMessages.map((msg, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs">
+                  <span className={
+                    msg.type === 'positive' ? 'text-green-400' :
+                    msg.type === 'suggestion' ? 'text-blue-400' :
+                    'text-yellow-400'
+                  }>
+                    {msg.type === 'positive' ? '\u25B8' : msg.type === 'suggestion' ? '\u25B8' : '\u25B8'}
+                  </span>
+                  <span className="text-gray-300">{msg.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tempo floor */}
+        {tempoFloorResult && (
+          <div className="bg-blue-900/20 rounded-lg p-3 mb-4 border border-blue-800/30">
+            <div className="text-[10px] text-blue-400 mb-1 uppercase tracking-wider">Tempo Floor</div>
+            <div className="text-xs text-gray-300">
+              Accuracy dropped to {tempoFloorResult.floorAccuracy}% at{' '}
+              <span className="font-bold text-white">{tempoFloorResult.tempoFloor} BPM</span>
+            </div>
+            <div className="text-xs text-blue-400 mt-1">
+              Recommended practice tempo:{' '}
+              <span className="font-bold">{tempoFloorResult.recommendedBpm} BPM</span>
+            </div>
+          </div>
+        )}
 
         {/* Bar-by-bar trend */}
         {stats.barHistory.length > 1 && (

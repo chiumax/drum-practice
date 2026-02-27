@@ -2,6 +2,56 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-02-27
+
+### Added
+- **Separate Drums/Piano sections** — Header restructured with two-level navigation; top row for section tabs (Drums, Piano), bottom row for contextual sub-nav. Logo updated to "Music Practice"
+- **Note Naming mode** — new sight reading mode where you type the note letter (A-G, with # for sharps) instead of playing on the piano keyboard
+- **Popular Melodies** — 10 curated melodies across 3 difficulty levels for guided sight reading practice
+  - Beginner: Twinkle Twinkle, Mary Had a Little Lamb, Ode to Joy, Happy Birthday, Hot Cross Buns
+  - Intermediate: Für Elise (theme), Canon in D (theme), Greensleeves
+  - Advanced: Moonlight Sonata (opening), Chromatic Scale Exercise
+  - "Listen" button plays melody reference audio before you practice
+  - Scrollable staff for longer melodies with auto-scroll to current note
+- **Microphone input** — pitch detection via Web Audio API autocorrelation algorithm for real piano input
+  - Mic indicator shows listening status, detected note name, and frequency
+  - Input method selector: Computer Keys / Virtual Piano / Microphone
+- **Input Method selector** for sight reading — switch between computer keyboard, virtual piano clicks, or microphone
+
+### Changed
+- `SightReadingMode` extended with `note-naming` and `melody` modes
+- Sight reading store extended with `inputMethod`, `selectedMelodyId`, `submitNoteName`, `startMelody` actions
+- Staff component supports `scrollable` prop for horizontal scrolling with auto-scroll
+- Sight reading page conditionally renders input areas based on mode and input method
+
+## [0.7.0] - 2026-02-27
+
+### Added
+- **Metronome Click** — dedicated sine-wave metronome independent of pattern playback
+  - Four modes: Off, All Beats (accent on 1), 2 & 4 only, 1 per Bar
+  - Adjustable volume slider
+  - Works with all subdivisions (8th, 16th, triplet)
+- **Mute Pattern Playback** — toggle to silence the reference pattern, hear only metronome + your taps
+- **Mute Tap Sounds** — toggle to silence your own drum hits, forcing internalization of the rhythm
+- **Drill Timer** — timed practice mode with preset durations (1, 2, 5, 10 minutes)
+  - Countdown display next to play button, pulses red in last 10 seconds
+  - Auto-stops session when timer expires
+- **Tempo Floor Finder** — analyzes bar-by-bar accuracy after a session to detect the BPM where timing breaks down
+  - Groups bars by BPM, finds accuracy cliff (below 70% or 80%)
+  - Shows recommended practice tempo (5 BPM below the floor) in results modal
+- **Coaching Feedback** — human-readable timing analysis in results modal (up to 3 messages)
+  - Per-beat bias: "You're consistently late on beat 3" or "Rushing beat 1"
+  - Per-instrument variance: "Your hi-hat timing is the most inconsistent"
+  - Bar-half analysis: "Rushing during the second half of each bar"
+  - Tempo suggestions: "Clean at 100 BPM — ready to move up 5" or "Try dropping to 85 BPM"
+
+### Changed
+- `BarAccuracy` now tracks BPM per bar for tempo floor analysis
+- `SessionStats` includes `detailedTaps` array for per-step/per-instrument timing analysis (stripped from localStorage to save space)
+- `PracticeSession` extended with optional `drillDurationMs` and `tempoFloor` fields
+- Settings store persists metronome mode, metronome volume, mute preferences
+- Live practice store tracks drill timer state and bar index for detailed tap recording
+
 ## [0.6.0] - 2026-02-27
 
 ### Added

@@ -94,7 +94,7 @@ export function generatePhrase(difficulty: Difficulty): number[] {
   return result;
 }
 
-export type SightReadingMode = 'note-drill' | 'interval' | 'phrase';
+export type SightReadingMode = 'note-drill' | 'interval' | 'phrase' | 'note-naming' | 'melody';
 
 export function generateChallenge(
   mode: SightReadingMode,
@@ -103,10 +103,13 @@ export function generateChallenge(
 ): number[] {
   switch (mode) {
     case 'note-drill':
+    case 'note-naming':
       return generateNoteDrill(difficulty, previousNote);
     case 'interval':
       return generateInterval(difficulty);
     case 'phrase':
       return generatePhrase(difficulty);
+    case 'melody':
+      return [];
   }
 }
