@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-type Section = 'drums' | 'piano';
+type Section = 'drums' | 'piano' | 'guitar';
 
 const sections: { id: Section; label: string; emoji: string }[] = [
   { id: 'drums', label: 'Drums', emoji: '🥁' },
   { id: 'piano', label: 'Piano', emoji: '🎹' },
+  { id: 'guitar', label: 'Guitar', emoji: '🎸' },
 ];
 
 const sectionNav: Record<Section, { href: string; label: string }[]> = {
@@ -15,15 +16,21 @@ const sectionNav: Record<Section, { href: string; label: string }[]> = {
     { href: '/', label: 'Patterns' },
     { href: '/practice', label: 'Practice' },
     { href: '/live', label: 'Live' },
+    { href: '/drumpad', label: 'Drumpad' },
+    { href: '/launchpad', label: 'Launchpad' },
     { href: '/progress', label: 'Progress' },
   ],
   piano: [
     { href: '/sight-reading', label: 'Sight Read' },
   ],
+  guitar: [
+    { href: '/guitar', label: 'Tab Practice' },
+  ],
 };
 
 function getActiveSection(pathname: string): Section {
   if (pathname.startsWith('/sight-reading')) return 'piano';
+  if (pathname.startsWith('/guitar')) return 'guitar';
   return 'drums';
 }
 

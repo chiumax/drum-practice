@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2026-03-04
+
+### Added
+- **Drumpad** (`/drumpad`) — MPC-style 4×4 pad grid for free-play drumming
+  - 16 synthesized drum sounds: 9 base instruments + 7 variants (deep kick, sub kick, clap, rimshot, sidestick, cross-stick, percussion)
+  - Keyboard mapping on natural QWERTY grid: `1234` / `QWER` / `ASDF` / `ZXCV`
+  - 4 switchable kits (Standard, Electronic, Percussion, Minimal) via arrow keys or buttons
+  - Hi-hat choke groups — closed hi-hat cuts off ringing open hi-hat
+  - Record pad hits with timing, play back with loop and adjustable speed (0.25x–2x)
+  - Recording timeline visualization with color-coded hit markers
+  - 8 pre-built routines: Boom Bap (90 BPM), House (124), Trap (140), Funky Break (105), Latin (100), Purdie Shuffle (96), Disco (115), Tom Fill (120)
+  - Color-coded visual feedback with glow animation on pad press
+  - Touch support for mobile
+- **Launchpad** (`/launchpad`) — full mirror of [Dan12/Launchpad](https://github.com/Dan12/Launchpad)
+  - 4×12 pad grid (48 pads) with sample-based playback
+  - 6 sound packs (913 MP3 samples): Equinox, Animals, Electro, Ghet, Kyoto, Aero Chord
+  - 4 chains per pack, switchable via arrow keys (← = Chain 1, ↑ = Chain 2, → = Chain 4, ↓ = Chain 3)
+  - Hold-to-play mode and linked area (mutually exclusive pad group) support
+  - Sample engine with on-demand loading and AudioBuffer caching
+  - Full keyboard mapping across 4 rows: `1234567890-=` / `QWERTYUIOP[]` / `ASDFGHJKL;'Enter` / `ZXCVBNM,./Shift`
+
+### Fixed
+- Turbopack workspace root resolution when parent directory has its own package.json (`turbopack.root` in next.config.ts)
+
 ## [0.8.0] - 2026-02-27
 
 ### Added
